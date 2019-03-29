@@ -12,9 +12,9 @@ public class Evaluate {
 	private int[][] whiteValue;// 保存每一空位下白子的价值
 	private int[][] staticValue;// 保存每一点的位置价值
 
-	private static final int LARGE_NUMBER = 10000000;
-	private static final int SEARCH_DEPTH = 3;
-	private static final int SAMPLE_NUMBER = 10;
+	private static final int LARGE_NUMBER = 10000000;// 只是作为一个很大的数
+	private static final int SEARCH_DEPTH = 6;// 极大、极小搜索的深度
+	private static final int SAMPLE_NUMBER = 10;// 在搜索时选择的样本数
 
 	private ChessBoard cb;
 
@@ -53,29 +53,25 @@ public class Evaluate {
 				}
 			}
 		}
-		int k = 0;
-		int[][] totalValue = new int[(cb.COLS + 1) * (cb.ROWS + 1)][3];// 定义具有三个列的二维数组
-		for (int i = 0; i <= cb.COLS; i++) {
-			for (int j = 0; j <= cb.ROWS; j++) {
-				if (cb.boardStatus[i][j] == 0) {
-					totalValue[k][0] = i;// 第一列是该点的列坐标
-					totalValue[k][1] = j;// 第二列是该店的行坐标
-					totalValue[k][2] = blackValue[i][j] + whiteValue[i][j] + staticValue[i][j];// 第三列是该点的总分值
-					k++;
-				}
+		int maxValue = -LARGE_NUMBER;
+		int value;
+		int[] position = new int[2];
+		int valuablePositions[][] = getTheMostValuablePositions();
+		for (int i = 0; i < valuablePositions.length; i++) {
+			if (valuablePositions[i][2] >= FIVE) {
+				position[0] = valuablePositions[i][0];
+				position[1] = valuablePositions[i][1];
+				break;
+			}
+			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor;
+			value = min(SEARCH_DEPTH, -LARGE_NUMBER, LARGE_NUMBER);
+			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;
+			if (value > maxValue) {
+				maxValue = value;
+				position[0] = valuablePositions[i][0];
+				position[1] = valuablePositions[i][1];
 			}
 		}
-		sort(totalValue);// 对总分值降序排序
-		// k的目的为了解决出现多个最大分值的问题，最大分值一定出现在最开始的几个位置上
-		k = 1;
-		int maxValue = totalValue[0][2];
-		while (totalValue[k][2] == maxValue) {
-			k++;
-		}
-		int r = (int) (Math.random() * k);// 多个点同时具有最大得分，随机选取一个作为最佳点
-		int[] position = new int[2];
-		position[0] = totalValue[r][0];
-		position[1] = totalValue[r][1];
 		return position;
 	}
 
@@ -372,25 +368,26 @@ public class Evaluate {
 		}
 	}
 
-	private int evaluateGame() {
+	// 棋局的估值=黑棋价值-白棋的价值
+	private int evaluateGame() {// 将棋型存储在一维数组中
 		int value = 0;
 		int i, j, k;
 		int[] line = new int[cb.COLS + 1];
-		for (j = 0; j <= cb.ROWS; j++) {
+		for (j = 0; j <= cb.ROWS; j++) {// 水平，对每一行进行估值
 			for (i = 0; i <= cb.COLS; i++) {
-				line[i] = cb.boardStatus[i][j];
+				line[i] = cb.boardStatus[i][j];// 将一行的状态复制到一维数组里
 			}
-			value += evaluateLine(line, cb.COLS + 1, 1);
-			value -= evaluateLine(line, cb.COLS + 1, 2);
+			value += evaluateLine(line, cb.COLS + 1, 1);// 加上黑方的价值
+			value -= evaluateLine(line, cb.COLS + 1, 2);// 减去白方的价值
 		}
-		for (i = 0; i <= cb.COLS; i++) {
+		for (i = 0; i <= cb.COLS; i++) {// 垂直，对每一列进行估值
 			for (j = 0; j <= cb.ROWS; j++) {
-				line[j] = cb.boardStatus[i][j];
+				line[j] = cb.boardStatus[i][j];// 将每一列的状态复制到一维数组里
 			}
 			value += evaluateLine(line, cb.ROWS + 1, 1);
 			value -= evaluateLine(line, cb.ROWS + 1, 2);
 		}
-		for (j = 4; j <= cb.ROWS; j++) {
+		for (j = 4; j <= cb.ROWS; j++) {// 左下到右上斜线估值
 			for (k = 0; k <= j; k++) {
 				line[k] = cb.boardStatus[k][j - k];
 			}
@@ -404,7 +401,7 @@ public class Evaluate {
 			value += evaluateLine(line, cb.ROWS + 1 - j, 1);
 			value -= evaluateLine(line, cb.ROWS + 1 - j, 2);
 		}
-		for (j = 0; j <= cb.ROWS - 4; j++) {
+		for (j = 0; j <= cb.ROWS - 4; j++) {// 左上到右下斜线估值
 			for (k = 0; k <= cb.ROWS - j; k++) {
 				line[k] = cb.boardStatus[k][k + j];
 			}
@@ -426,15 +423,15 @@ public class Evaluate {
 		}
 	}
 
-	private int evaluateLine(int lineState[], int num, int color) {
-		int chess, space1, space2;
+	private int evaluateLine(int lineState[], int num, int color) {// 对棋型进行分析形成3个变量
+		int chess, space1, space2;// chess:连续棋子的个数 space1:连续棋子前方空位数 space2:连续棋子后方空位数
 		int i, j, k;
 		int value = 0;
 		int begin, end;
 		for (i = 0; i < num; i++)
 			if (lineState[i] == color) {
 				chess = 1;
-				begin = i;
+				begin = i;// 棋子开始时的下标
 				for (j = begin + 1; (j < num) && (lineState[j] == color); j++) {
 					chess++;
 				}
@@ -450,7 +447,7 @@ public class Evaluate {
 				for (j = end + 1; (j < num) && ((lineState[j] == 0) || (lineState[j] == color)); j++) {
 					space2++;
 				}
-				if (chess + space1 + space2 >= 5) {
+				if (chess + space1 + space2 >= 5) {// 只有5个以上才有价值
 					value += getValue(chess, space1, space2);
 				}
 				i = end + 1;
@@ -458,7 +455,7 @@ public class Evaluate {
 		return value;
 	}
 
-	private int getValue(int chessCount, int spaceCount1, int spaceCount2) {
+	private int getValue(int chessCount, int spaceCount1, int spaceCount2) {// 对3个变量进行分析得到分值
 		int value = 0;
 		switch (chessCount) {
 		case 5:
@@ -490,7 +487,7 @@ public class Evaluate {
 		return value;
 	}
 
-	private int[][] getTheMostValuablePositions() {
+	private int[][] getTheMostValuablePositions() {// 查找价值最大的几个空位作为进步搜索的样本
 		int i, j, k = 0;
 		int[][] allValue = new int[(cb.COLS + 1) * (cb.ROWS + 1)][3];
 		for (i = 0; i < cb.COLS; i++) {
@@ -514,7 +511,48 @@ public class Evaluate {
 		return valuablePositions;
 	}
 
-	private int min(int depth) {
+	private int min(int depth, int alpha, int beta) {
+		if (depth == 0) {// 如果搜索到最底层，直接返回当前的估值
+			return evaluateGame();
+		}
+		for (int i = 0; i <= cb.COLS; i++) {
+			for (int j = 0; j <= cb.ROWS; j++) {
+				blackValue[i][j] = 0;
+				whiteValue[i][j] = 0;
+				if (cb.boardStatus[i][j] == 0) {
+					for (int m = 1; m <= 4; m++) {
+						blackValue[i][j] += evaluateValue(1, i, j, m);
+						whiteValue[i][j] += evaluateValue(2, i, j, m);
+					}
+				}
+			}
+		}
+		int value;
+		int valuablePositions[][] = getTheMostValuablePositions();
+		for (int i = 0; i < valuablePositions.length; i++) {
+			if (cb.computerColor == 1) {
+				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+					return -10 * FIVE;
+				}
+			} else {
+				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+					return -10 * FIVE;
+				}
+			}
+			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor == 1 ? 2 : 1;
+			value = max(depth - 1, alpha, beta);
+			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;
+			if (value < beta) {
+				beta = value;
+				if (alpha >= beta) {
+					return alpha;
+				}
+			}
+		}
+		return beta;
+	}
+
+	private int max(int depth, int alpha, int beta) {
 		if (depth == 0) {
 			return evaluateGame();
 		}
@@ -530,44 +568,7 @@ public class Evaluate {
 				}
 			}
 		}
-		int bestValue = LARGE_NUMBER;
-		int value;
-		int valuablePositions[][] = getTheMostValuablePositions();
-		for (int i = 0; i < valuablePositions.length; i++) {
-			if (cb.computerColor == 1) {
-				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
-					return -10 * FIVE;
-				}
-			} else {
-				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
-					return -10 * FIVE;
-				}
-			}
-			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor == 1 ? 2 : 1;
-			value = max(depth - 1);
-			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;
-			if (value < bestValue) {
-				bestValue = value;
-			}
-		}
-		return bestValue;
-	}
 
-	private int max(int depth) {
-		for (int i = 0; i <= cb.COLS; i++) {
-			for (int j = 0; j <= cb.ROWS; j++) {
-				blackValue[i][j] = 0;
-				whiteValue[i][j] = 0;
-				if (cb.boardStatus[i][j] == 0) {
-					for (int m = 1; m <= 4; m++) {
-						blackValue[i][j] += evaluateValue(1, i, j, m);
-						whiteValue[i][j] += evaluateValue(2, i, j, m);
-					}
-				}
-			}
-		}
-		int bestValue;
-		bestValue = -LARGE_NUMBER;
 		int value;
 		int valuablePositions[][] = getTheMostValuablePositions();
 		for (int i = 0; i < valuablePositions.length; i++) {
@@ -581,10 +582,14 @@ public class Evaluate {
 				}
 			}
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor;
-			if (value > bestValue) {
-				bestValue = value;
+			value = min(depth - 1, alpha, beta);
+			if (value > beta) {
+				beta = value;
+				if (alpha >= beta) {
+					return beta;
+				}
 			}
 		}
-		return bestValue;
+		return alpha;
 	}
 }
