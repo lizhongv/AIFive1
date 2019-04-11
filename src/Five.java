@@ -8,13 +8,15 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
 public class Five extends JFrame {
 	private JToolBar toolbar;
+	private JPanel chooseJpanel;
 	private JButton startButton, backButton, exitButton, giveupButton, aboutButton;
 	private ChessBoard boardPanel;
-	JCheckBox manFirst, whiteFirst;// 默认计算机先手、先手执黑棋
+	JCheckBox manFirst, whiteFirst, noviceLevel, intermediateLevel, higherLevel;// 默认计算机先手、先手执黑棋
 
 	public Five() {
 		super("五子棋人机对战");

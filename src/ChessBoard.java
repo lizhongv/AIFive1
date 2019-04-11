@@ -26,11 +26,11 @@ public class ChessBoard extends JPanel {
 	int[][] boardStatus;// 记录棋盘 0:无棋子，1：黑棋子，2：白棋子
 
 	// 棋子设置
-	Chess[] chessList = new Chess[100];
+	Chess[] chessList = new Chess[300];// 棋子
 	int chessCount; // 棋子数目
-	int manChessCount;
-	int computerChessCount;
-	int computerColor;// 计算机棋子颜色 1：黑棋，2：白棋
+	int manChessCount;// 人 棋子数
+	int computerChessCount;// 电脑 棋子数
+	int computerColor;// 电脑棋子颜色 1：黑棋，2：白棋
 
 	// 游戏设置
 	boolean isBlack = true; // 下一步该哪一方下棋：默认先手是黑棋
@@ -38,6 +38,7 @@ public class ChessBoard extends JPanel {
 	boolean isComputerGo;// 是否该计算机下棋
 
 	public ChessBoard(Five f) {
+		// 棋盘设置
 		this.f = f;
 		boardStatus = new int[COLS + 1][ROWS + 1];
 		for (int i = 0; i <= COLS; i++) {
@@ -46,9 +47,10 @@ public class ChessBoard extends JPanel {
 			}
 		}
 		img = Toolkit.getDefaultToolkit().getImage("img/board.jpg");
+		// 棋盘监听
 		this.addMouseListener(new MouseMonitor()); // 在鼠标点击的位置下棋
 		this.addMouseMotionListener((MouseMotionListener) new MouseMotionMonitor());
-		// 鼠标在移动时 可以下棋的位置：鼠标形状设置为手形，不可以下棋的位置：鼠标形状设置为标准箭头光标
+		// 鼠标在移动时 可以下棋的位置：鼠标形状设置为手形 不可以下棋的位置：鼠标形状设置为标准箭头光标
 	}
 
 	public Dimension getPreferredSize() { // 封装组件的宽度、高度
@@ -81,7 +83,7 @@ public class ChessBoard extends JPanel {
 			if (hasChess(col, row))// 如果(x,y)位置已经有棋子则不能下棋
 				return;
 
-			// 内部逻辑
+			// ***********************内部逻辑*****************
 			manGo(col, row);
 			if (!isGamming)
 				return;
@@ -89,11 +91,11 @@ public class ChessBoard extends JPanel {
 		}
 	}
 
-	public void restartGame() { // 重新开始
-		for (int i = 0; i < chessList.length; i++) {
+	public void restartGame() { // 开始游戏
+		for (int i = 0; i < chessList.length; i++) {// 棋子初始化
 			chessList[i] = null;
 		}
-		for (int i = 0; i <= COLS; i++) {
+		for (int i = 0; i <= COLS; i++) {// 棋盘初始化
 			for (int j = 0; j <= ROWS; j++) {
 				boardStatus[i][j] = 0;
 			}
@@ -106,7 +108,7 @@ public class ChessBoard extends JPanel {
 		manChessCount = 0;
 		computerChessCount = 0;
 
-		// 内部逻辑
+		// *******************内部逻辑*********************
 		if (isComputerGo) {
 			computerGo();
 		}
@@ -118,10 +120,12 @@ public class ChessBoard extends JPanel {
 			return;
 		int i = chessList[chessCount - 1].getCol();
 		int j = chessList[chessCount - 1].getRow();
-		boardStatus[i][j] = 0;
+		// 棋盘改变
+		boardStatus[i][j] = 0;// 棋盘去掉一个棋子
 		i = chessList[chessCount - 2].getCol();
 		j = chessList[chessCount - 2].getRow();
-		boardStatus[i][j] = 0;
+		boardStatus[i][j] = 0;// 棋盘去掉两个棋子
+		// 棋子改变
 		chessList[chessCount - 1] = null;
 		chessList[chessCount - 2] = null;
 		chessCount -= 2;
@@ -130,14 +134,14 @@ public class ChessBoard extends JPanel {
 		paintComponent(this.getGraphics());
 	}
 
-	public void giveUp() {
+	public void giveUp() {// 放弃游戏
 		String colorName = isBlack ? "白棋" : "黑棋";// 计算机赢了
 		String msg = String.format("恭喜,%s赢了！", colorName);
 		JOptionPane.showMessageDialog(ChessBoard.this, msg);
 		isGamming = false;
 	}
 
-	public void about() {
+	public void about() {// 关于
 		if (isGamming) {
 			String colorName = isBlack ? "黑棋" : "白棋";
 			String msg = "default:computer first,black first.Now:is Gamming,man is" + colorName;
@@ -150,14 +154,14 @@ public class ChessBoard extends JPanel {
 		}
 	}
 
-	private void computerGo() {// 实现计算机下棋
-		Evaluate e = new Evaluate(this);
-		int pos[] = e.getTheBestPosition();// pos[0]:X坐标，pos[1]:Y坐标
+	private void computerGo() {// 电脑下棋
+		Evaluate e = new Evaluate(this);// 棋盘位置权重初始化
+		int pos[] = e.getTheBestPosition();// 找到最优下棋位置 pos[0]:X坐标，pos[1]:Y坐标
 		computerChessCount++;
 		putChess(pos[0], pos[1], isBlack ? Color.black : Color.white, computerChessCount);
 	}
 
-	public void manGo(int col, int row) {// 人在指定坐标下棋
+	public void manGo(int col, int row) {// 人下棋
 		manChessCount++;
 		putChess(col, row, isBlack ? Color.black : Color.white, manChessCount);
 	}

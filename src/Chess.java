@@ -11,11 +11,11 @@ import java.awt.geom.Ellipse2D;
 
 public class Chess {
 	public static final int DIAMETER = ChessBoard.SPAN - 2;
-	private int col; // 旗子在棋盘中的x索引
-	private int row; // 旗子在棋盘中的y索引
-	private Color color; // 颜色
-	private int num;// 棋子上显示数字
-	ChessBoard cb;
+	private int col; // 棋子在棋盘中的x索引
+	private int row; // 棋子在棋盘中的y索引
+	private Color color; // 棋子颜色
+	private int num;// 棋子数字
+	ChessBoard cb;// 棋盘
 
 	public Chess(ChessBoard cb, int col, int row, Color color, int num) {
 		this.cb = cb;
@@ -41,11 +41,10 @@ public class Chess {
 		return num;
 	}
 
-	// 画旗子
-	public void draw(Graphics g) {
-		int xPos = col * cb.SPAN + cb.MARGIN;
+	public void draw(Graphics g) {// 勾画棋子
+		int xPos = col * cb.SPAN + cb.MARGIN;// 棋子在棋盘上位置
 		int yPos = row * cb.SPAN + cb.MARGIN;
-		Graphics2D g2d = (Graphics2D) g;
+		Graphics2D g2d = (Graphics2D) g;// 扩展类
 		// 颜色渐变
 		RadialGradientPaint paint = null;// 圆形辐射颜色渐变模式填充某一形状
 		int x = xPos + DIAMETER / 4;
@@ -57,12 +56,12 @@ public class Chess {
 		} else if (color == Color.white) {
 			paint = new RadialGradientPaint(x, y, DIAMETER * 2, f, c);
 		}
-		g2d.setPaint(paint);
-		// 以下两行使边界更均匀
+		g2d.setPaint(paint);// 上下文设置paint属性
+		// 使棋子边界更均匀
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_DEFAULT);
 		Ellipse2D e = new Ellipse2D.Float(xPos - DIAMETER / 2, yPos - DIAMETER / 2, DIAMETER, DIAMETER);// 定义椭圆
-		g2d.fill(e);
+		g2d.fill(e);// 填充shape的内部区域
 
 		// 棋子上写数字
 		if (color == Color.white) {
