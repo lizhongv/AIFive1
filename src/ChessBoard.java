@@ -34,7 +34,7 @@ public class ChessBoard extends JPanel {
 
 	// 游戏设置
 	boolean isBlack = true; // 下一步该哪一方下棋：默认先手是黑棋
-	boolean isGamming = false; // 是否正在游戏中
+	boolean isGamming = false; // 是否正在游戏中（用户点击棋盘无用）必须同时isGamming=true而isComputerCo=false
 	boolean isComputerGo;// 是否该计算机下棋
 
 	public ChessBoard(Five f) {
@@ -157,6 +157,7 @@ public class ChessBoard extends JPanel {
 	private void computerGo() {// 电脑下棋
 		Evaluate e = new Evaluate(this);// 棋盘位置权重初始化
 		int pos[] = e.getTheBestPosition();// 找到最优下棋位置 pos[0]:X坐标，pos[1]:Y坐标
+		System.out.println(pos[0] + "," + pos[1]);
 		computerChessCount++;
 		putChess(pos[0], pos[1], isBlack ? Color.black : Color.white, computerChessCount);
 	}
