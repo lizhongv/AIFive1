@@ -67,19 +67,16 @@ public class Evaluate {
 		int maxValue = -LARGE_NUMBER;
 		int value;
 		int[] position = new int[2];
-		int valuablePositions[][] = getTheMostValuablePositions();
+		int valuablePositions[][] = getTheMostValuablePositions();// 搜索样本空间
 		for (int i = 0; i < valuablePositions.length; i++) {
 			if (valuablePositions[i][2] >= FIVE) {// 已经连五
-				position[0] = valuablePositions[i][0];
-				position[1] = valuablePositions[i][1];
+				position[0] = valuablePositions[i][0];// 下棋点行坐标
+				position[1] = valuablePositions[i][1];// 下棋点列坐标
 				break;
 			}
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor;// 试着在该点下棋
-			value = min(SEARCH_DEPTH, -LARGE_NUMBER, LARGE_NUMBER);
+			value = min(SEARCH_DEPTH, -LARGE_NUMBER, LARGE_NUMBER);// 人下棋最佳位置返回的价值
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;// 再将该点恢复为空
-			// ******************检验
-			System.out.println(
-					i + "best=(" + valuablePositions[i][0] + "," + valuablePositions[i][1] + ")<" + value + ">");
 			if (value > maxValue) {// 估值最大点为机器下棋点
 				maxValue = value;
 				position[0] = valuablePositions[i][0];
@@ -89,9 +86,9 @@ public class Evaluate {
 		return position;
 	}
 
-	private int min(int depth, int alpha, int beta) {// 搜索人下棋的最佳位置
+	private int min(int depth, int alpha, int beta) {// 搜索人下棋的最佳位置（value最小）
 		if (depth == 0) {// 如果搜索到最底层，直接返回当前的估值
-			return evaluateGame();
+			return evaluateGame();// 棋局的估值
 		}
 		for (int i = 0; i <= cb.COLS; i++) {
 			for (int j = 0; j <= cb.ROWS; j++) {
@@ -99,8 +96,8 @@ public class Evaluate {
 				whiteValue[i][j] = 0;
 				if (cb.boardStatus[i][j] == 0) {
 					for (int m = 1; m <= 4; m++) {
-						blackValue[i][j] += evaluateValue(1, i, j, m);
-						whiteValue[i][j] += evaluateValue(2, i, j, m);
+						blackValue[i][j] += evaluateValue(1, i, j, m);// 黑棋空位价值
+						whiteValue[i][j] += evaluateValue(2, i, j, m);// 白棋空位价值
 					}
 				}
 			}
@@ -108,24 +105,20 @@ public class Evaluate {
 		int value;
 		int valuablePositions[][] = getTheMostValuablePositions();
 		for (int i = 0; i < valuablePositions.length; i++) {
-			if (cb.computerColor == 1) {
-				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+			if (cb.computerColor == 1) {// 电脑黑棋
+				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {// 人可以连五
 					return -10 * FIVE;
 				}
 			} else {
-				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {// 人可以连五
 					return -10 * FIVE;
 				}
 			}
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor == 1 ? 2 : 1;// 试着在该点人下棋
 			value = max(depth - 1, alpha, beta);
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;// 再将该点恢复为空
-			// *******************检验
-			System.out.println(i + "min" + " depth=" + depth + "(" + +valuablePositions[i][0] + ","
-					+ valuablePositions[i][1] + ")<" + value + ">" + "beta=" + beta + "alpha=" + alpha);
 			if (value < beta) {// beta保存当前的最小估值
 				beta = value;
-				System.out.println("<beta=" + beta + "><value=" + value + ">");
 				if (alpha >= beta) {// alpha剪枝
 					return alpha;
 				}
@@ -134,7 +127,7 @@ public class Evaluate {
 		return beta;
 	}
 
-	private int max(int depth, int alpha, int beta) {// 搜索机器下棋的最佳位置
+	private int max(int depth, int alpha, int beta) {// 搜索机器下棋的最佳位置（value最大）
 		if (depth == 0) {
 			return evaluateGame();
 		}
@@ -154,23 +147,19 @@ public class Evaluate {
 		int valuablePositions[][] = getTheMostValuablePositions();
 		for (int i = 0; i < valuablePositions.length; i++) {
 			if (cb.computerColor == 1) {
-				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+				if (blackValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {// 计算机可以连五
 					return 10 * FIVE;
 				}
 			} else {
-				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {
+				if (whiteValue[valuablePositions[i][0]][valuablePositions[i][1]] >= FIVE) {// 计算机可以连五
 					return 10 * FIVE;
 				}
 			}
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = cb.computerColor;
 			value = min(depth - 1, alpha, beta);
 			cb.boardStatus[valuablePositions[i][0]][valuablePositions[i][1]] = 0;
-			// **************************检验
-			System.out.println(i + "max" + " depth=" + depth + "(" + +valuablePositions[i][0] + ","
-					+ valuablePositions[i][1] + ")<" + value + ">" + "alpha=" + alpha + "beta=" + beta);
 			if (value > alpha) {// alpha保存当前的最大估值
 				alpha = value;
-				System.out.println("<alpha=" + alpha + "><value=" + value + ">");
 				if (alpha >= beta) {// beta剪枝
 					return beta;
 				}
@@ -593,9 +582,9 @@ public class Evaluate {
 		int size = k < SAMPLE_NUMBER ? k : SAMPLE_NUMBER;// min{空位数，样本数}
 		int valuablePositions[][] = new int[size][3];
 		for (i = 0; i < size; i++) {
-			valuablePositions[i][0] = allValue[i][0];
-			valuablePositions[i][1] = allValue[i][1];
-			valuablePositions[i][2] = allValue[i][2];
+			valuablePositions[i][0] = allValue[i][0];// 行坐标
+			valuablePositions[i][1] = allValue[i][1];// 列坐标
+			valuablePositions[i][2] = allValue[i][2];// 空位价值
 		}
 		return valuablePositions;
 	}
@@ -618,5 +607,4 @@ public class Evaluate {
 			}
 		}
 	}
-
 }
